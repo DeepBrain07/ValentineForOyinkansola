@@ -173,7 +173,6 @@
 
         let interactionCount = 0;
 
-        // Transition content for when she interacts with "No"
         const transitions = [
             { gif: "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3MXFnM3Q0cmJlZ3poaWJ5amowd252aWhjN3RhNWZzemtwMTZ4bTVyMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/buPHaNvgiNdCGPnrbG/giphy.gif", text: "Are you sure? 🥺" },
             { gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGF2Zm85MGtoNmRneGJ3NXJsOGsyb3pnMWZ0djRvNzVoOTk2cDJvZSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Zl7u48zLVFgLpRwq6f/giphy.gif", text: "Pwease think about it... 💔" },
@@ -183,38 +182,51 @@
         ];
 
         function handleNoInteraction() {
-            // 1. Move the button
             const vw = window.innerWidth;
             const vh = window.innerHeight;
             const btnWidth = noBtn.offsetWidth;
             const btnHeight = noBtn.offsetHeight;
             const padding = 50;
-            const maxX = vw - btnWidth - padding;
-            const maxY = vh - btnHeight - padding;
 
-            const minBoundary = padding+10; // minimum distance from edges
+            // Get Yes Button position to avoid overlap
+            const yesRect = yesBtn.getBoundingClientRect();
+            const forbiddenZone = {
+                left: yesRect.left - padding,
+                right: yesRect.right + padding,
+                top: yesRect.top - padding,
+                bottom: yesRect.bottom + padding
+            };
 
-const randomX = Math.floor(
-  Math.random() * (maxX/2 - minBoundary * 2)
-) + minBoundary;
+            let randomX, randomY;
+            let overlap = true;
 
-const randomY = Math.floor(
-  Math.random() * (maxY/1.2 - minBoundary * 2)
-);
+            // Loop until we find a spot that doesn't overlap with the Yes button
+            while (overlap) {
+                randomX = Math.floor(Math.random() * (vw/2 - btnWidth - padding)) + padding/2;
+                randomY = Math.floor(Math.random() * (vh/1.2 - btnHeight - padding)) + padding/2;
+
+                // Check if the new coordinates fall inside the forbidden zone around Yes button
+                const btnRight = randomX + btnWidth;
+                const btnBottom = randomY + btnHeight;
+
+                const isOverlappingX = btnRight > forbiddenZone.left && randomX < forbiddenZone.right;
+                const isOverlappingY = btnBottom > forbiddenZone.top && randomY < forbiddenZone.bottom;
+
+                if (!(isOverlappingX && isOverlappingY)) {
+                    overlap = false;
+                }
+            }
 
             noBtn.style.position = 'fixed';
             noBtn.style.left = randomX + 'px';
             noBtn.style.top = randomY + 'px';
             noBtn.style.zIndex = "9999";
 
-            // 2. Transition the GIF and Text
             interactionCount++;
             const phase = transitions[interactionCount % transitions.length];
-            
             mainGif.src = phase.gif;
             subPrompt.innerText = phase.text;
 
-            // 3. Make "Yes" grow slightly as an incentive
             const currentScale = 1 + (interactionCount * 0.1);
             yesBtn.style.transform = `scale(${Math.min(currentScale, 1.6)})`;
         }
@@ -222,7 +234,7 @@ const randomY = Math.floor(
         function handleYes() {
             document.getElementById('question-section').classList.add('hidden');
             document.getElementById('success-section').classList.remove('hidden');
-            noBtn.style.display = 'none'; // Ensure no button disappears completely
+            noBtn.style.display = 'none'; 
             createConfetti();
         }
 
