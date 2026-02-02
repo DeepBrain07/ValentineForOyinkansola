@@ -192,8 +192,15 @@
             const maxX = vw - btnWidth - padding;
             const maxY = vh - btnHeight - padding;
 
-            const randomX = Math.floor(Math.random() * Math.max(maxX/1.5, padding)) + (padding / 2);
-            const randomY = Math.floor(Math.random() * Math.max(maxY/1.5, padding)) + (padding / 2);
+            const minBoundary = padding; // minimum distance from edges
+
+const randomX = Math.floor(
+  Math.random() * (maxX/2 - minBoundary * 2)
+) + minBoundary;
+
+const randomY = Math.floor(
+  Math.random() * (maxY/2 - minBoundary * 2)
+) + minBoundary;
 
             noBtn.style.position = 'fixed';
             noBtn.style.left = randomX + 'px';
