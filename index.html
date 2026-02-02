@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="oyin.jpg">
+    <title>For Oyinkansola</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Poppins:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #fff0f3; 
+            background: radial-gradient(circle, #fff0f3 0%, #ffccd5 100%);
+            overflow: hidden;
+            font-family: 'Poppins', sans-serif;
+            position: relative;
+        }
+
+        /* Floating Hearts Animation */
+        .bg-heart {
+            position: absolute;
+            top: -10%;
+            color: #ff4d6d;
+            opacity: 0.6;
+            animation: fall linear infinite;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.6; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
+        }
+
+        /* Modern Aesthetic Card */
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 30px;
+            padding: 40px 30px;
+            text-align: center;
+            width: 90%;
+            max-width: 450px;
+            box-shadow: 0 20px 40px rgba(255, 77, 109, 0.15);
+            z-index: 10;
+        }
+
+        h1 {
+            font-family: 'Dancing Script', cursive;
+            color: #c9184a;
+            font-size: 2.2rem;
+            margin: 20px 0;
+            line-height: 1.3;
+        }
+
+        .gif-container {
+            width: 100%;
+            min-height: 180px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+        }
+
+        .gif-container img {
+            width: 180px;
+            height: 180px;
+            object-fit: contain;
+            border-radius: 20px;
+            transition: opacity 0.3s ease;
+        }
+
+        .btn-container {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+            position: relative;
+            min-height: 60px;
+        }
+
+        button {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 15px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-yes {
+            background: #ff4d6d;
+            color: white;
+            box-shadow: 0 10px 20px rgba(255, 77, 109, 0.3);
+            z-index: 5;
+        }
+
+        .btn-yes:hover {
+            transform: scale(1.1);
+            background: #ff758f;
+        }
+
+        .btn-no {
+            background: #fff;
+            color: #ff4d6d;
+            border: 2px solid #ff4d6d;
+            z-index: 1000;
+            transition: left 0.2s ease, top 0.2s ease;
+        }
+
+        .hidden { display: none; }
+
+        .sub-text {
+            color: #590d22;
+            font-weight: 300;
+            margin-top: 5px;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div id="hearts-bg"></div>
+
+    <div class="card" id="mainCard">
+        <div id="question-section">
+            <div class="gif-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm0xeHExaDRha2xyZjJ6M2lwNTg1ZDJya3NtbGxzczlxNnhtd3M4ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/XYEEvoX0Ub69ZgN9ai/giphy.gif" alt="Cute Bear Asking" id="mainGif">
+            </div>
+            <h1 id="mainTitle">My dearest, <br> Oyinkansola...</h1>
+            <p id="subPrompt" class="sub-text" style="margin-bottom: 10px;">Will you make me the happiest person and be my Valentine?</p>
+            
+            <div class="btn-container">
+                <button class="btn-yes" id="yesBtn" onclick="handleYes()">Yes, I will!</button>
+                <button class="btn-no" id="noBtn" onmouseover="handleNoInteraction()" ontouchstart="handleNoInteraction()">No</button>
+            </div>
+        </div>
+
+        <div id="success-section" class="hidden">
+            <div class="gif-container">
+                <img src="https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3a2VmOWoyZHlhM2RpdXA3djZ5cWkzdTZiZ3J1a29paHFrejd4eWd4YSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/8KgdF5wsXRGIH2VUYz/giphy.gif" alt="Cute Bear Hug">
+            </div>
+            <h1>YAAAY! ❤️</h1>
+            <p class="sub-text">I love you so much, Oyinkansola!</p>
+            <p class="sub-text">You've made me the luckiest person!</p>
+        </div>
+    </div>
+
+    <script>
+        const noBtn = document.getElementById('noBtn');
+        const yesBtn = document.getElementById('yesBtn');
+        const mainGif = document.getElementById('mainGif');
+        const subPrompt = document.getElementById('subPrompt');
+
+        let interactionCount = 0;
+
+        // Transition content for when she interacts with "No"
+        const transitions = [
+            { gif: "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3MXFnM3Q0cmJlZ3poaWJ5amowd252aWhjN3RhNWZzemtwMTZ4bTVyMSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/buPHaNvgiNdCGPnrbG/giphy.gif", text: "Are you sure? 🥺" },
+            { gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbGF2Zm85MGtoNmRneGJ3NXJsOGsyb3pnMWZ0djRvNzVoOTk2cDJvZSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Zl7u48zLVFgLpRwq6f/giphy.gif", text: "Pwease think about it... 💔" },
+            { gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm0xeHExaDRha2xyZjJ6M2lwNTg1ZDJya3NtbGxzczlxNnhtd3M4ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/MFIsOqzodLr7ewnkUb/giphy.gif", text: "Don't do this to me! 😭" },
+            { gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm0xeHExaDRha2xyZjJ6M2lwNTg1ZDJya3NtbGxzczlxNnhtd3M4ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/y6lu312reRzVC46yFn/giphy.gif", text: "I'll be very sad... 😿" },
+            { gif: "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNm0xeHExaDRha2xyZjJ6M2lwNTg1ZDJya3NtbGxzczlxNnhtd3M4ayZlcD12MV9naWZzX3NlYXJjaCZjdD1n/XYEEvoX0Ub69ZgN9ai/giphy.gif", text: "Oyinkansola, please? ❤️" }
+        ];
+
+        function handleNoInteraction() {
+            // 1. Move the button
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const btnWidth = noBtn.offsetWidth;
+            const btnHeight = noBtn.offsetHeight;
+            const padding = 50;
+            const maxX = vw - btnWidth - padding;
+            const maxY = vh - btnHeight - padding;
+
+            const randomX = Math.floor(Math.random() * Math.max(maxX/1.5, padding)) + (padding / 2);
+            const randomY = Math.floor(Math.random() * Math.max(maxY/1.5, padding)) + (padding / 2);
+
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = randomX + 'px';
+            noBtn.style.top = randomY + 'px';
+            noBtn.style.zIndex = "9999";
+
+            // 2. Transition the GIF and Text
+            interactionCount++;
+            const phase = transitions[interactionCount % transitions.length];
+            
+            mainGif.src = phase.gif;
+            subPrompt.innerText = phase.text;
+
+            // 3. Make "Yes" grow slightly as an incentive
+            const currentScale = 1 + (interactionCount * 0.1);
+            yesBtn.style.transform = `scale(${Math.min(currentScale, 1.6)})`;
+        }
+
+        function handleYes() {
+            document.getElementById('question-section').classList.add('hidden');
+            document.getElementById('success-section').classList.remove('hidden');
+            noBtn.style.display = 'none'; // Ensure no button disappears completely
+            createConfetti();
+        }
+
+        function createHearts() {
+            const container = document.getElementById('hearts-bg');
+            const icons = ['❤️', '💖', '🌸', '✨'];
+            for(let i=0; i<25; i++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = icons[Math.floor(Math.random() * icons.length)];
+                heart.classList.add('bg-heart');
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.animationDuration = (Math.random() * 3 + 4) + 's';
+                heart.style.fontSize = (Math.random() * 15 + 15) + 'px';
+                container.appendChild(heart);
+            }
+        }
+
+        function createConfetti() {
+            const colors = ['#ff4d6d', '#ff758f', '#ffb3c1', '#ffffff'];
+            for (let i = 0; i < 60; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';
+                confetti.style.width = '10px';
+                confetti.style.height = '10px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.left = '50%';
+                confetti.style.top = '50%';
+                confetti.style.borderRadius = '50%';
+                confetti.style.zIndex = '1000';
+                document.body.appendChild(confetti);
+
+                const angle = Math.random() * Math.PI * 2;
+                const velocity = Math.random() * 12 + 5;
+                const xVel = Math.cos(angle) * velocity;
+                const yVel = Math.sin(angle) * velocity;
+                
+                let x = 0; let y = 0; let opacity = 1;
+
+                const interval = setInterval(() => {
+                    x += xVel; y += yVel; opacity -= 0.02;
+                    confetti.style.transform = `translate(${x}px, ${y}px)`;
+                    confetti.style.opacity = opacity;
+                    if(opacity <= 0) { clearInterval(interval); confetti.remove(); }
+                }, 16);
+            }
+        }
+
+        createHearts();
+    </script>
+</body>
+</html>
