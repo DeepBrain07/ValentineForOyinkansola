@@ -1,0 +1,324 @@
+<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" type="text/css">
+
+<style>
+.customizer-container { width: 100%; max-width: 450px; margin: 0 auto; text-align: center; padding: 10px; box-sizing: border-box; font-family: sans-serif; }
+.necklace-chain { position: absolute; bottom: 35.5%; left: 15%; width: 100%; height: 100%; opacity: 0; transition: opacity 0.5s ease; pointer-events: none; z-index: 5; }
+.search-section { text-align: left; margin-bottom: 20px; }
+.search-header { font-weight: bold; display: block; margin-bottom: 8px; font-size: 14px; }
+.variant-section { text-align: left; margin-bottom: 20px; }
+.color-label { font-size: 16px; margin-bottom: 10px; display: block; font-family: serif; letter-spacing: 1px; }
+.color-options { display: flex; gap: 15px; }
+.color-circle { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ccc; cursor: pointer; transition: border 0.2s ease; position: relative; }
+.color-circle.active { border: 3px solid #000; }
+.color-circle.gold { background-color: #e3cc5a; }
+.color-circle.silver { background-color: #d1d1d1; }
+.mapboxgl-ctrl-geocoder { width: 100% !important; max-width: none !important; box-shadow: none !important; border: 1px solid #ccc; }
+.map-pendant-wrapper { position: relative; width: 100%; aspect-ratio: 1 / 1; max-width: 400px; margin: 0 auto 20px; background: #fff; overflow: hidden; border-radius: 4px; border: 1px solid #eee; }
+#map { width: 100%; height: 100%; transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease; }
+.sliding-out { transform: translateX(-100%); opacity: 0; }
+.map-pendant-wrapper.jewelry-active .necklace-chain { opacity: 1; }
+
+.map-pendant-wrapper.jewelry-active #map {
+  -webkit-mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 28.5C16 28.5 2 20.5 2 10.5C2 6.5 5.5 3 10 3C12.5 3 14.5 4 16 6C17.5 4 19.5 3 22 3C26.5 3 30 6.5 30 10.5C30 20.5 16 28.5 16 28.5Z"/></svg>');
+  mask-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 28.5C16 28.5 2 20.5 2 10.5C2 6.5 5.5 3 10 3C12.5 3 14.5 4 16 6C17.5 4 19.5 3 22 3C26.5 3 30 6.5 30 10.5C30 20.5 16 28.5 16 28.5Z"/></svg>');
+  -webkit-mask-repeat: no-repeat; -webkit-mask-position: center; -webkit-mask-size: 50%;
+  mask-repeat: no-repeat; mask-position: center; mask-size: 50%;
+}
+
+.heart-overlay { position: absolute; top: 50%; left: 50%; width: 50%; height: 50%; transform: translate(-50%, -50%); pointer-events: none; z-index: 10; }
+.heart-overlay svg { width: 100%; height: 100%; fill: transparent; stroke: #000; stroke-width: 0.3; transition: stroke 0.4s ease; }
+.custom-marker { width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid #fff; cursor: default; box-shadow: 0 0 4px rgba(0,0,0,0.4); z-index: 20; }
+.view-toggle { display: flex; background: #e5e7eb; padding: 4px; border-radius: 999px; margin-top: 10px; margin-bottom: 15px; }
+.view-toggle button { flex: 1; padding: 12px 5px; border: none; background: transparent; cursor: pointer; font-weight: bold; color: #666; font-size: 14px; }
+.view-toggle button.active { background: #4a5568; color: white; border-radius: 999px; }
+</style>
+
+<div class="customizer-container">
+    <div id="personalization-fields" style="display:none;">
+      <input type="hidden" name="properties[_Design_Image]" id="shopify-design-image">
+      <input type="hidden" name="properties[Colore]" id="shopify-metal-color" value="Oro Giallo">
+      <input type="hidden" name="properties[Indirizzo]" id="shopify-map-address">
+    </div>
+
+    <div class="variant-section">
+      <span class="color-label">Colorazione: <span id="color-name">Oro Giallo</span></span>
+      <div class="color-options">
+        <div class="color-circle gold active" data-name="Oro Giallo" data-hex="#d4af37"></div>
+        <div class="color-circle silver" data-name="Argento" data-hex="#c0c0c0"></div>
+      </div>
+    </div>
+
+    <div class="search-section">
+      <label class="search-header">Inserisci la posizione o l'indirizzo</label>
+      <div id="external-geocoder"></div>
+    </div>
+
+    <div class="map-pendant-wrapper" id="pendant-container">
+      <svg class="necklace-chain" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="0" y1="0" x2="35" y2="70" class="chain-element" stroke="#d4af37" stroke-width="0.5" />
+      </svg>
+      <svg class="necklace-chain" style="left: 50%" viewBox="0 0 100 100" preserveAspectRatio="none">
+        <line x1="35" y1="0" x2="0" y2="70" class="chain-element" stroke="#d4af37" stroke-width="0.5" />
+      </svg>
+      <div id="map"></div>
+      <div class="heart-overlay">
+        <svg viewBox="0 0 32 32">
+          <path id="heart-path" d="M16 28.5C16 28.5 2 20.5 2 10.5C2 6.5 5.5 3 10 3C12.5 3 14.5 4 16 6C17.5 4 19.5 3 22 3C26.5 3 30 6.5 30 10.5C30 20.5 16 28.5 16 28.5Z" />
+        </svg>
+      </div>
+    </div>
+
+    <div class="view-toggle">
+      <button type="button" id="btn-map" class="active">Vista Mappa</button>
+      <button type="button" id="btn-jewelry">Vista Gioiello</button>
+    </div>
+</div>
+
+<script>
+const CLOUDINARY_CLOUD_NAME = "dfy1zyofm"; 
+const CLOUDINARY_PRESET = "Shopify"; 
+
+mapboxgl.accessToken = "pk.eyJ1IjoiYWxtYWdpb2llbGxpNiIsImEiOiJjbWpmcWY5ODIwb21iM2NzNmF3b2ptdzd2In0.9w4ceMnYRZWvCmgdaD6b7w";
+
+let currentMetalColor = "#d4af37";
+let lastSelectedAddress = "Milano, Italia";
+
+const map = new mapboxgl.Map({
+  container: "map",
+  style: "mapbox://styles/mapbox/light-v10",
+  center: [9.19, 45.4642],
+  zoom: 12,
+  preserveDrawingBuffer: true,
+  antialias: true,
+  crossOrigin: 'anonymous'
+});
+
+const markerEl = document.createElement('div');
+markerEl.className = 'custom-marker';
+markerEl.style.backgroundColor = "#000000";
+
+const marker = new mapboxgl.Marker({ element: markerEl, draggable: false })
+  .setLngLat([9.19, 45.4642])
+  .addTo(map);
+
+const geocoder = new MapboxGeocoder({
+  accessToken: mapboxgl.accessToken,
+  mapboxgl: mapboxgl,
+  marker: false,
+  placeholder: "Cerca una città o indirizzo..."
+});
+
+geocoder.on('result', (e) => {
+  lastSelectedAddress = e.result.place_name;
+});
+
+document.getElementById('external-geocoder').appendChild(geocoder.onAdd(map));
+
+const container = document.getElementById("pendant-container");
+const heartPath = document.getElementById("heart-path");
+
+function captureDesign() {
+  const mapCanvas = map.getCanvas();
+  const finalCanvas = document.createElement('canvas');
+  const ctx = finalCanvas.getContext('2d');
+  
+  finalCanvas.width = 1000; 
+  finalCanvas.height = 1000;
+  
+  const verticalShift = 80; 
+  const centerX = finalCanvas.width / 2;
+  const centerY = (finalCanvas.height / 2) - verticalShift; 
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, finalCanvas.width, finalCanvas.height);
+  
+  const heartSize = finalCanvas.width * 0.50; 
+  const scale = heartSize / 32;
+  const offX = centerX - (16 * scale);
+  const offY = centerY - (16 * scale);
+
+  ctx.beginPath();
+  ctx.strokeStyle = currentMetalColor;
+  ctx.lineWidth = 6;
+  ctx.moveTo(300, 0);
+  ctx.lineTo(centerX - 4, offY + (6 * scale));
+  ctx.moveTo(700, 0);
+  ctx.lineTo(centerX + 4, offY + (6 * scale));
+  ctx.stroke();
+
+  const heartPathStr = "M16 28.5C16 28.5 2 20.5 2 10.5C2 6.5 5.5 3 10 3C12.5 3 14.5 4 16 6C17.5 4 19.5 3 22 3C26.5 3 30 6.5 30 10.5C30 20.5 16 28.5 16 28.5Z";
+  const p = new Path2D(heartPathStr);
+
+  ctx.save();
+  ctx.translate(offX, offY); 
+  ctx.scale(scale, scale);
+  ctx.clip(p); 
+  
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const side = Math.min(mapCanvas.width, mapCanvas.height);
+  const sx = (mapCanvas.width - side) / 2;
+  const sy = (mapCanvas.height - side) / 2;
+
+  ctx.drawImage(mapCanvas, sx, sy, side, side, centerX - 500, centerY - 500, 1000, 1000);
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(offX, offY);
+  ctx.scale(scale, scale);
+  ctx.strokeStyle = currentMetalColor;
+  ctx.lineWidth = 0.7; 
+  ctx.stroke(p);
+  ctx.restore();
+
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 18, 0, 2 * Math.PI);
+  ctx.fillStyle = currentMetalColor;
+  ctx.fill();
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  return finalCanvas.toDataURL("image/png");
+}
+
+function initShopifyIntegration() {
+  const findForm = () => document.querySelector('form[action*="/cart/add"]');
+  setInterval(() => {
+    const form = findForm();
+    const fields = document.getElementById('personalization-fields');
+    if (form && fields && !form.contains(fields)) form.appendChild(fields);
+  }, 1000);
+
+  document.addEventListener('click', async function(e) {
+    const btn = e.target.closest('[name="add"], .product-form__submit, .add-to-cart');
+    if (!btn || btn.disabled) return;
+    const form = btn.closest('form[action*="/cart/add"]');
+    if (!form) return;
+
+    e.preventDefault();
+    e.stopImmediatePropagation();
+
+    if (!container.classList.contains('jewelry-active')) {
+      alert("Per favore, passa a 'Vista Gioiello' per confermare il design.");
+      return;
+    }
+
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = "Caricamento...";
+
+    try {
+      const mPos = map.getCenter();
+      
+      // START REVERSE GEOCODING
+      const geoResp = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${mPos.lng},${mPos.lat}.json?access_token=${mapboxgl.accessToken}&limit=1`);
+      const geoData = await geoResp.json();
+      const finalFullAddress = geoData.features[0] ? geoData.features[0].place_name : lastSelectedAddress;
+
+      markerEl.style.opacity = '0'; 
+      await new Promise(r => setTimeout(r, 50)); 
+      const imageData = captureDesign();
+      markerEl.style.opacity = '1'; 
+
+      const formData = new FormData();
+      formData.append('file', imageData);
+      formData.append('upload_preset', CLOUDINARY_PRESET);
+      formData.append('tags', 'shopify_temporary_design');
+
+      const cloudResp = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`, {
+        method: 'POST', body: formData
+      });
+      const cloudData = await cloudResp.json();
+
+      if (cloudData.secure_url) {
+        const payload = {
+          items: [{
+            id: form.querySelector('[name="id"]')?.value,
+            quantity: 1,
+            properties: {
+              '_Design_Image': cloudData.secure_url,
+              'Colore': document.getElementById('shopify-metal-color').value,
+              'Indirizzo': finalFullAddress
+            }
+          }]
+        };
+        const shopifyResp = await fetch('/cart/add.js', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (shopifyResp.ok) window.location.href = '/cart';
+      }
+    } catch (err) {
+      alert("Errore: " + err.message);
+      btn.disabled = false;
+      btn.innerText = originalText;
+      markerEl.style.opacity = '1';
+    }
+  }, true);
+}
+
+initShopifyIntegration();
+
+function applyJewelryStyle() {
+  if (!map.isStyleLoaded()) return;
+  const layers = map.getStyle().layers;
+  if (!map.getLayer('jewelry-bg')) {
+    map.addLayer({ id: 'jewelry-bg', type: 'background', paint: { 'background-color': '#ffffff' } }, layers[0].id);
+  }
+  const roadRegex = /road|street|bridge|tunnel|path|motorway|pixel/i;
+  layers.forEach((l) => {
+    const isRoad = roadRegex.test(l.id) || roadRegex.test(l['source-layer'] || "");
+    if (l.type === 'line' && isRoad) {
+      map.setLayoutProperty(l.id, "visibility", "visible");
+      map.setPaintProperty(l.id, "line-color", currentMetalColor);
+      map.setPaintProperty(l.id, "line-width", 1.8);
+      if(l.id.includes('casing')) map.setLayoutProperty(l.id, "visibility", "none");
+    } else if (l.id !== 'jewelry-bg') {
+      map.setLayoutProperty(l.id, "visibility", "none");
+    }
+  });
+  heartPath.parentElement.style.stroke = currentMetalColor;
+  markerEl.style.backgroundColor = currentMetalColor;
+  document.querySelectorAll('.chain-element').forEach(chain => chain.setAttribute('stroke', currentMetalColor));
+}
+
+document.querySelectorAll('.color-circle').forEach(circle => {
+  circle.onclick = function() {
+    document.querySelectorAll('.color-circle').forEach(c => c.classList.remove('active'));
+    this.classList.add('active');
+    currentMetalColor = this.getAttribute('data-hex');
+    document.getElementById('color-name').innerText = this.getAttribute('data-name');
+    document.getElementById('shopify-metal-color').value = this.getAttribute('data-name');
+    if (container.classList.contains("jewelry-active")) applyJewelryStyle();
+  }
+});
+
+document.getElementById("btn-map").onclick = function() {
+  this.classList.add("active"); document.getElementById("btn-jewelry").classList.remove("active");
+  document.getElementById("map").classList.add("sliding-out");
+  setTimeout(() => {
+    container.classList.remove("jewelry-active");
+    map.setStyle("mapbox://styles/mapbox/light-v10");
+    heartPath.parentElement.style.stroke = "#000000";
+    map.once("style.load", () => { 
+      document.getElementById("map").classList.remove("sliding-out"); markerEl.style.backgroundColor = "#000"; 
+    });
+  }, 400);
+};
+
+document.getElementById("btn-jewelry").onclick = function() {
+  this.classList.add("active"); document.getElementById("btn-map").classList.remove("active");
+  document.getElementById("map").classList.add("sliding-out");
+  setTimeout(() => {
+    container.classList.add("jewelry-active");
+    map.setStyle("mapbox://styles/mapbox/dark-v11");
+    const checkLoad = () => { applyJewelryStyle(); document.getElementById("map").classList.remove("sliding-out"); map.off('idle', checkLoad); };
+    map.on('idle', checkLoad);
+  }, 400);
+};
+
+map.on('move', () => { marker.setLngLat(map.getCenter()); });
+</script>
